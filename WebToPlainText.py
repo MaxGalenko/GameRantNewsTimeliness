@@ -1,39 +1,19 @@
-import scrapy
-from scrapy.crawler import CrawlerProcess
-import lxml.html
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
 
-# Create a spider
-class ExampleSpider(scrapy.Spider):
-    name = 'example'
-    custom_settings = {
-        'REQUEST_FINGERPRINTER_IMPLEMENTATION': '2.7',
-        'LOG_LEVEL': 'CRITICAL',  # Only log critical errors
-        'LOG_FILE': 'log.txt',  # Save log to file
-    }
+url = "https://gamerant.com/epic-games-store-free-games-march-2024-deus-ex-bridge-egs/"
+html = urlopen(url).read()
+soup = BeautifulSoup(html, features="html.parser")
 
-    # Define a list of start URLs
-    start_urls = [
-        "https://gamerant.com/palworld-peta-statement/"
-    ]
+# kill all script and style elements
+for script in soup(["script", "style"]):
+    script.extract()    # rip it out
 
-    def parse(self, response):
-        # Parse the response
-        content = lxml.html.fromstring(response.body)
+# get text
+plain_text = soup.get_text()
 
-        # Strip unwanted elements like <script> and <head>
-        lxml.etree.strip_elements(content, lxml.etree.Comment, "script", "head")
+# split text into an array
+plain_text_split = plain_text.split()
 
-        # complete text
-        plain_text = lxml.html.tostring(content, method="text", encoding="unicode")
-
-        # split text into an array to get rid of the useless spaces, tabs and whitespaces
-        plain_text_split = plain_text.split()
-
-        # write text into one line separated by spaces
-        cleaned_plain_text = " ".join(plain_text_split)
-
-        print(cleaned_plain_text)
-
-process = CrawlerProcess()
-process.crawl(ExampleSpider)
-process.start()
+# write text in one line
+cleaned_plain_text = " ".join(plain_text_split)
