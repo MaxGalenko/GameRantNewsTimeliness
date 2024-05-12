@@ -3,6 +3,7 @@ import os
 import json
 from datetime import datetime
 import pytz
+from database.databaseFunctions import *
 
 # Read the Excel file into a pandas DataFrame
 # Get the current working directory
@@ -37,13 +38,16 @@ for x in json_object:
     # Format the datetime object as a string in EST
     article_datetime = datetime_obj_est.strftime('%m-%d-%Y %H:%M:%S.%f')
 
+    keywords = []
+    # keywords = getkeywordsfromgpt()
+
     article = {
+        "timestamp": article_datetime,
+        'publisher': 'GameRant',
         "title": article_title,
-        "url": article_url,
-        "datetime": article_datetime
+        'keywords': keywords,
+        "url": article_url
     }
 
     # now we send article to be processed into the db
-
-
-
+    insert_into_news_articles(article)

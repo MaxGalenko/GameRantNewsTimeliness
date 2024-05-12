@@ -12,8 +12,8 @@ article = {
     'url': 'https://ninentdo.com/article'
 }
 
-print(insert_into_news_articles(article))
-print(cur.execute("""
-SELECT * FROM news_articles
-"""))
+# print(insert_into_news_articles(article))
+# print(cur.execute("""
+# SELECT * FROM news_articles
+# """))
 retroactive_scan()
