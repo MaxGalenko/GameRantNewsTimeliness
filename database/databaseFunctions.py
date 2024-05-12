@@ -4,7 +4,7 @@ import pandas as pd
 
 conn = psycopg2.connect(database="gamerantb1",
                         user="postgres",
-                        host='localhost',
+                        host='192.168.151.247',
                         password="gamerantb1",
                         port=5432)
 
@@ -172,3 +172,29 @@ def retroactive_scan():
                                 'First Announcement Timestamp': first_pub_timestamp, 'Delta Time': delta_time})
         df.to_csv('output.csv', mode='a', header=(first_iter))
         first_iter = False
+
+
+def get_gamerant_date_range():
+    cur.execute("""
+            SELECT MIN(timestamp) 
+            FROM news_articles
+            WHERE publisher = 'GameRant'
+            """,
+                )
+    conn.commit()
+    min_date = cur.fetchone()[0]
+
+    cur.execute("""
+                SELECT MAX(timestamp) 
+                FROM news_articles
+                WHERE publisher = 'GameRant'
+                """,
+                )
+    conn.commit()
+    max_date = cur.fetchone()[0]
+
+    date_range = {
+        "min": min_date,
+        "max": max_date
+    }
+    return date_range
