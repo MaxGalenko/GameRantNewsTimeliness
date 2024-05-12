@@ -1,5 +1,5 @@
 import time
-from AIAPIImplementation import load_openai_client, get_response_array
+from AIAPIImplementation import get_keywords_array
 from ntscraper import Nitter
 
 def check_tweets():
@@ -22,15 +22,13 @@ def check_tweets():
     # ubisoft_tweets = nitter.get_tweets("Ubisoft", mode='user', number=entry)
     # fortnite_tweets = nitter.get_tweets("FortniteGame", mode='user', number=entry)
 
-    client = load_openai_client()
-
     # Printing the tweets
     def add_tweets(tweets_data, user):
         nonlocal data
         for tweet in tweets_data['tweets']:
             if tweet['user']['name'] == user:
                 plain_text_article = (tweet['text'])
-                response = get_response_array(client, plain_text_article)
+                response = get_keywords_array(plain_text_article)
                 sample = {
                     'timestamp': tweet['date'],
                     'publisher': tweet['user']['name'],
@@ -39,6 +37,7 @@ def check_tweets():
                     'url': tweet['link']
                 }
                 sample_tuple = tuple(sample.items())
+                print(type(sample_tuple))
                 if sample_tuple not in data:
                     data.add(sample_tuple)
 

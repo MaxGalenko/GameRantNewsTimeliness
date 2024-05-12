@@ -1,10 +1,24 @@
 import psycopg2
 from datetime import datetime
 import pandas as pd
+import atexit
+import importlib
+
+import sys
+
+sys.path.append("..")
+from AIAPIImplementation import *
+
+
+@atexit.register
+def close_connection_pool():
+    conn.commit()
+    conn.close()
+
 
 conn = psycopg2.connect(database="gamerantb1",
                         user="postgres",
-                        host='192.168.151.247',
+                        host='localhost',
                         password="gamerantb1",
                         port=5432)
 
@@ -15,7 +29,16 @@ def create_tables():
     print('create tables')
 
 
-def ask_gpt_if_related(url1, url2):
+def ask_gpt_if_related(gamerant_article_content, outside_article):
+    outside_publisher = outside_article[2]
+    outside_url = outside_article[5]
+
+    parser = importlib.import_module(f'articleParsers.{(outside_publisher.lower())}ArticleParser')
+    article_content_getter = getattr(parser, f'{outside_publisher.lower()}_article_content')
+    outside_article_content = article_content_getter(outside_url)
+
+    matching_article_content(gamerant_article_content, outside_article_content)
+
     return True
 
 
@@ -28,7 +51,7 @@ def match_news_case(article):
         WHERE news_cases.status='current_news'
         AND (
         SELECT COUNT(DISTINCT unnest(%(keywords)s) INTERSECT SELECT DISTINCT unnest(news_cases.keywords))
-        ) >= 3
+        ) >= 5
         AND news_cases.gamerant_article_id != null
         """, article)
 
@@ -45,14 +68,21 @@ def match_news_case(article):
     return False, 0
 
 
+def check_if_article_in_db(article_url):
+    cur.execute("""
+    SELECT * FROM news_articles
+    WHERE url=%(url)s""", {'url': article_url})
+    return cur.rowcount > 0
+
+
 def insert_into_news_articles(article):
+    print(article['keywords'])
     cur.execute("""
         INSERT INTO news_articles(timestamp, publisher, title, keywords, url)
         VALUES(%(timestamp)s, %(publisher)s, %(title)s, %(keywords)s, %(url)s)
         RETURNING article_id
         """,
                 article)
-    conn.commit()
 
     new_article_id = cur.fetchone()[0]
     return new_article_id
@@ -129,18 +159,13 @@ def retroactive_scan():
         gamerant_url = gamerant_article[5]
         gamerant_title = gamerant_article[3]
         gamerant_timestamp = gamerant_article[1]
+
+        parser = importlib.import_module('articleParsers.GameRantArticleParser')
+        article_content_getter = getattr(parser, 'gamerant_article_content')
+        gamerant_article_content = article_content_getter(gamerant_url)
+
         first_pub_url = None
         first_pub_timestamp = None
-
-        # select all outside articles with keywords matching gamerant article
-        # cur.execute("""
-        #         SELECT * FROM news_articles
-        #         WHERE publisher!='GameRant'
-        #         AND (
-        #         SELECT COUNT((DISTINCT unnest(%(keywords)s)) INTERSECT (SELECT DISTINCT unnest(news_cases.keywords)))
-        #         ) >= 3
-        #         """,
-        #             {'keywords': gamerant_article[4]})
 
         cur.execute("""
                 SELECT * FROM news_articles
@@ -149,7 +174,7 @@ def retroactive_scan():
                 SELECT COUNT(*)
                 FROM unnest(keywords) AS keyword
                 WHERE keyword = ANY(%(keywords)s)
-                ) >= 3
+                ) >= 5
                 """,
                     {'keywords': gamerant_article[4]})
 
@@ -161,16 +186,19 @@ def retroactive_scan():
                 url2 = row[5]
                 article_timestamp = row[1]
                 # if articles are related and outside article's release date is the oldest one found so far
-                if ask_gpt_if_related(url1, url2) and (
+                if ask_gpt_if_related(gamerant_article_content, row) and (
                         first_pub_timestamp is None or article_timestamp < first_pub_timestamp):
                     first_pub_url = url2
                     first_pub_timestamp = article_timestamp
 
-        delta_time = gamerant_timestamp - first_pub_timestamp
+        delta_time = gamerant_timestamp
+        if first_pub_timestamp is not None:
+            delta_time -= first_pub_timestamp
+
         df = pd.DataFrame(data={'GameRant URL': [gamerant_url], 'GameRant Title': gamerant_title,
                                 'GameRant Timestamp': gamerant_timestamp, 'First Announcement Url': first_pub_url,
                                 'First Announcement Timestamp': first_pub_timestamp, 'Delta Time': delta_time})
-        df.to_csv('output.csv', mode='a', header=(first_iter))
+        df.to_csv('output.csv', mode='a', header=first_iter)
         first_iter = False
 
 
@@ -194,7 +222,7 @@ def get_gamerant_date_range():
     max_date = cur.fetchone()[0]
 
     date_range = {
-        "min": min_date,
-        "max": max_date
+        "min_date": min_date,
+        "max_date": max_date
     }
     return date_range
