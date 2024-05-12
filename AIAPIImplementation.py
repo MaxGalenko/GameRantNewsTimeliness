@@ -56,7 +56,7 @@ def get_keywords_array(plain_text_article):
     )
 
 
-    print(response.choices[0].message.content)
+    # print(response.choices[0].message.content)
     return ast.literal_eval(response.choices[0].message.content)
 
 

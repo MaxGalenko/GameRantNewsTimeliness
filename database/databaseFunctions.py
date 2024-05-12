@@ -32,9 +32,14 @@ def create_tables():
 def ask_gpt_if_related(gamerant_article_content, outside_article):
     outside_publisher = outside_article[2]
     outside_url = outside_article[5]
+    outside_title = outside_article[3]
 
     parser = importlib.import_module(f'articleParsers.{(outside_publisher.lower())}ArticleParser')
-    article_content_getter = getattr(parser, f'{outside_publisher.lower()}_article_content')
+    if outside_title is not None:
+        article_content_getter = getattr(parser, f'{outside_publisher.lower()}_article_content')
+    else:
+        article_content_getter = getattr(parser, f'{outside_publisher.lower()}_tweet_content')
+
     outside_article_content = article_content_getter(outside_url)
 
     matching_article_content(gamerant_article_content, outside_article_content)

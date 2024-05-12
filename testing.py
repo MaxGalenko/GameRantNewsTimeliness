@@ -3,13 +3,17 @@ from scanPublisherByDateRange.xboxScanner import *
 # from articleParsers.XboxArticleParser import *
 from scanPubs import *
 import importlib
+from twitterText import *
 
 # write_gamerant_excel_to_database()
 
 date_range = get_gamerant_date_range()
 
-publishers = ['xbox']
+# publishers = ['xbox', 'ign']
+publishers = ['xbox', 'epic']
+# publishers = ['ign']
 
+check_tweets()
 for publisher in publishers:
     scanner = importlib.import_module(f'scanPublisherByDateRange.{publisher}Scanner')
     get_article_urls = getattr(scanner, 'get_article_urls')

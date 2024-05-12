@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from AIAPIImplementation import *
 from datetime import datetime
 from dateutil import parser
+from twitterText import *
 import pytz
 
 
@@ -62,21 +63,25 @@ def parse_xbox_article(url):
 
 
 def xbox_article_content(url):
-    response = requests.get(url, headers={
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7'})
-    soup = BeautifulSoup(response.content, features="html.parser")
+        response = requests.get(url, headers={
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7'})
+        soup = BeautifulSoup(response.content, features="html.parser")
 
-    article_body = soup.find("div", class_='post__content')
-    for aside in article_body(['aside']):
-        aside.extract()
-    summary_block = article_body.find('div', class_='wp-block-xbox-summary')
-    if summary_block is not None:
-        summary_block.extract()
-    mspb_details = soup.find("div", class_='mspb-details')
-    if mspb_details is not None:
-        mspb_details.extract()
+        article_body = soup.find("div", class_='post__content')
+        for aside in article_body(['aside']):
+            aside.extract()
+        summary_block = article_body.find('div', class_='wp-block-xbox-summary')
+        if summary_block is not None:
+            summary_block.extract()
+        mspb_details = soup.find("div", class_='mspb-details')
+        if mspb_details is not None:
+            mspb_details.extract()
 
-    article_body_text = article_body.get_text()
+        article_body_text = article_body.get_text()
 
-    return article_body_text
+        return article_body_text
+
+def xbox_tweet_content(url):
+    content = get_xbox_tweets(url)
+    return content

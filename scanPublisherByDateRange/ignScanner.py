@@ -4,11 +4,14 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 import time
 from articleParsers.ignArticleParser import *
+import pytz
 
 
 # def get_article_urls():
 def get_article_urls(min_date, max_date):
     article_urls = []
+    min_date = min_date.replace(tzinfo=pytz.utc)
+    max_date = max_date.replace(tzinfo=pytz.utc)
     # Initialize WebDriver
     driver = webdriver.Chrome()  # You should replace this with the appropriate web driver you're using (Chrome, Firefox, etc.)
 
@@ -53,7 +56,7 @@ def get_article_urls(min_date, max_date):
 
     return article_urls
 
-min_date = datetime(year=2024, month=5, day=10, tzinfo=pytz.utc)
-max_date = datetime(year=2024, month=5, day=11, tzinfo=pytz.utc)
+# min_date = datetime(year=2024, month=5, day=10, tzinfo=pytz.utc)
+# max_date = datetime(year=2024, month=5, day=11, tzinfo=pytz.utc)
 
-print(get_article_urls(min_date, max_date))
+# print(get_article_urls(min_date, max_date))
