@@ -33,7 +33,10 @@ def get_response_array(client, plain_text_article):
     ]
   )
 
-  return response.choices[0].message.content
+  # Extract the array of keywords
+  keyword_array = response.choices[0].message.content
+
+  return keyword_array
 
 # response = client.chat.completions.create(
 #   model="gpt-3.5-turbo",
@@ -42,5 +45,10 @@ def get_response_array(client, plain_text_article):
 #     {"role": "user", "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris auctor consectetur congue. Nulla eget turpis orci. Cras ac tortor quis ligula egestas volutpat a vitae massa. Aliquam nec accumsan est, id feugiat lacus. Nam ut magna nisl. Aenean iaculis hendrerit dui a semper. Sed placerat sem ante, sed congue nunc posuere id. Nunc viverra, magna a tempor lobortis, nulla magna vestibulum quam, a tristique nulla eros eu lacus. Fusce nec ultricies mi."}
 #   ]
 # )
+
+# client = load_openai_client()
+# plain_text_article = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris auctor consectetur congue. Nulla eget turpis orci. Cras ac tortor quis ligula egestas volutpat a vitae massa. Aliquam nec accumsan est, id feugiat lacus. Nam ut magna nisl. Aenean iaculis hendrerit dui a semper. Sed placerat sem ante, sed congue nunc posuere id. Nunc viverra, magna a tempor lobortis, nulla magna vestibulum quam, a tristique nulla eros eu lacus. Fusce nec ultricies mi.'
+# response = get_response_array(client, plain_text_article)
+# print(response)
 
 # print(response.choices[0].message.content)
